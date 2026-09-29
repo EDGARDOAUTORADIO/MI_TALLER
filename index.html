@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Gestión de Taller & Cotizador X-28</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f6f9; color: #333; }
+    h1, h2 { color: #1a365d; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn { padding: 10px 20px; background: #cbd5e1; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; }
+    .tab-btn.active { background: #0284c7; color: white; }
+    .content { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .content.active { display: block; }
+    .form-group { margin-bottom: 15px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    .row { display: flex; gap: 15px; }
+    .col { flex: 1; }
+    button.btn-save { background: #16a34a; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #0284c7; color: white; }
+    .alert-turno { background: #fef08a; padding: 10px; border-left: 5px solid #eab308; margin-bottom: 15px; font-weight: bold; }
+    .card { background: #e0f2fe; padding: 15px; border-radius: 5px; text-align: center; font-size: 18px; font-weight: bold; }
+    @media print {
+      body * { visibility: hidden; }
+      #printable, #printable * { visibility: visible; }
+      #printable { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠️ Sistema Integral de Taller y Alarmas</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="openTab('trabajos')">📋 Orden de Trabajo</button>
+    <button class="tab-btn" onclick="openTab('busqueda')">🔍 Buscar / Historial</button>
+    <button class="tab-btn" onclick="openTab('turnos')">📅 Turnos y Agenda</button>
+    <button class="tab-btn" onclick="openTab('presupuestos')">🏠 Cotizador Alarmas Casas</button>
+    <button class="tab-btn" onclick="openTab('estadisticas')">📊 Más Vendidos</button>
+  </div>
+
+  <!-- PESTAÑA 1: REGISTRO DE TRABAJO -->
+  <div id="trabajos" class="content active">
+    <h2>Registrar Trabajo Realizado</h2>
+    <form id="form-trabajo">
+      <div class="row">
+        <div class="col form-group">
+          <label>Nombre del Cliente:</label>
+          <input type="text" id="nombre" required>
+        </div>
+        <div class="col form-group">
+          <label>Teléfono:</label>
+          <input type="text" id="telefono">
+        </div>
+        <div class="col form-group">
+          <label>Celular:</label>
+          <input type="text" id="celular" required>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col form-group">
+          <label>Vehículo:</label>
+          <select id="tipo_vehiculo">
+            <option value="Auto">Auto</option>
+            <option value="Moto">Moto</option>
+            <option value="Camioneta">Camioneta</option>
+          </select>
+        </div>
+        <div class="col form-group">
+          <label>Modelo:</label>
+          <input type="text" id="modelo" required>
+        </div>
+        <div class="col form-group">
+          <label>Año:</label>
+          <input type="number" id="anio">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Categoría del Servicio (Para Estadísticas):</label>
+        <select id="categoria" required>
+          <option value="Aire acondicionado">Aire acondicionado</option>
+          <option value="Calefaccion">Calefacción</option>
+          <option value="Audiocar">Audiocar</option>
+          <option value="Cierre centralizado">Cierre centralizado</option>
+          <option value="Levantacristal">Levantacristal</option>
+          <option value="Alarmas">Alarmas</option>
+          <option value="Polarizado">Polarizado</option>
+          <option value="Baterias">Baterías</option>
+          <option value="Otras">Otras</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Trabajo Solicitado / A Realizar:</label>
+        <textarea id="trabajo_a_realizar" rows="2"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Trabajo Realizado (Detalle final):</label>
+        <textarea id="trabajo_realizado" rows="2"></textarea>
+      </div>
+
+      <div class="row">
+        <div class="col form-group">
+          <label>¿Es con Instalación incluida?:</label>
+          <select id="es_instalado" onchange="togglePrecioInstalado()">
+            <option value="no">Sin Instalación (Solo producto)</option>
+            <option value="si">Con Instalación</option>
+          </select>
+        </div>
+        <div class="col form-group">
+          <label>Importe ($):</label>
+          <input type="number" id="importe" required>
+        </div>
+        <div class="col form-group">
+          <label>Forma de Pago:</label>
+          <select id="forma_pago">
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Debito">Débito</option>
+            <option value="Tarjeta">Tarjeta de Crédito</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="button" class="btn-save" onclick="guardarTrabajo()">💾 Guardar Registro</button>
+    </form>
+  </div>
+
+  <!-- PESTAÑA 2: BÚSQUEDA / HISTORIAL -->
+  <div id="busqueda" class="content">
+    <h2>Buscar Historial de Clientes / Vehículos</h2>
+    <input type="text" id="input-buscar" placeholder="Buscar por Nombre, Teléfono, Modelo o Trabajo..." onkeyup="buscarHistorial()">
+    <table id="tabla-historial">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cliente / Tel</th>
+          <th>Vehículo</th>
+          <th>Categoría</th>
+          <th>Trabajo Realizado</th>
+          <th>Importe</th>
+          <th>Pago</th>
+        </tr>
+      </thead>
+      <tbody id="body-historial"></tbody>
+    </table>
+  </div>
+
+  <!-- PESTAÑA 3: TURNOS Y ALERTAS DEL DÍA -->
+  <div id="turnos" class="content">
+    <h2>Agenda de Turnos</h2>
+    <div id="alerta-hoy" class="alert-turno"></div>
+
+    <form id="form-turno">
+      <div class="row">
+        <div class="col form-group">
+          <label>Fecha del Turno:</label>
+          <input type="date" id="turno_fecha" required>
+        </div>
+        <div class="col form-group">
+          <label>Cliente:</label>
+          <input type="text" id="turno_cliente" required>
+        </div>
+        <div class="col form-group">
+          <label>Vehículo / Modelo:</label>
+          <input type="text" id="turno_vehiculo">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Trabajo a Realizar:</label>
+        <input type="text" id="turno_detalle">
+      </div>
+      <button type="button" class="btn-save" onclick="guardarTurno()">📅 Agendar Turno</button>
+    </form>
+
+    <h3 style="margin-top:20px;">Próximos Turnos</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Vehículo</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody id="body-turnos"></tbody>
+    </table>
+  </div>
+
+  <!-- PESTAÑA 4: PRESUPUESTADOR ALARMAS X-28 CON IVA -->
+  <div id="presupuestos" class="content">
+    <h2>Presupuestador - Alarmas Residenciales</h2>
+    <p>Seleccioná los ítems para agregar al presupuesto automático:</p>
+    
+    <div class="row">
+      <div class="col form-group">
+        <label>Agregar Ítem / Componente:</label>
+        <select id="item_x28">
+          <option value="Central N4-MPXH (Alarma 4 zonas)|28500">Central N4-MPXH ($28.500)</option>
+          <option value="Teclado T8M-MPXH|14200">Teclado T8M-MPXH ($14.200)</option>
+          <option value="Sensor Infrarrojo MD 70W|9800">Sensor Infrarrojo Interior ($9.800)</option>
+          <option value="Sensor Exterior MX35W|21000">Sensor Exterior Anti-mascota ($21.000)</option>
+          <option value="Sirena Interior S 16L|6500">Sirena Interior ($6.500)</option>
+          <option value="Sirena Exterior S 62TF|18500">Sirena Exterior c/Flash ($18.500)</option>
+          <option value="Módulo Control Smartphone WIFI|32000">Módulo Wifi / App ($32.000)</option>
+        </select>
+      </div>
+      <div class="col form-group" style="align-self: flex-end;">
+        <button type="button" class="btn-save" onclick="agregarItemPresupuesto()">+ Agregar al Presupuesto</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:15px;">
+      <div class="col form-group">
+        <label>Aplicar IVA:</label>
+        <select id="tipo_iva" onchange="calcularTotalPresupuesto()">
+          <option value="0">Sin IVA</option>
+          <option value="21">+ IVA 21%</option>
+          <option value="10.5">+ IVA 10,5%</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="printable">
+      <hr>
+      <h3>PRESUPUESTO DE SEGURIDAD Y ALARMAS</h3>
+      <table id="tabla-presupuesto">
+        <thead>
+          <tr>
+            <th>Descripción</th>
+            <th>Precio Unitario</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="body-presupuesto"></tbody>
+      </table>
+      <h3 style="text-align:right;" id="total-presupuesto">Total: $0</h3>
+    </div>
+
+    <button type="button" class="btn-save" onclick="window.print()">🖨️ Descargar / Imprimir en PDF</button>
+  </div>
+
+  <!-- PESTAÑA 5: ESTADÍSTICAS -->
+  <div id="estadisticas" class="content">
+    <h2>Estadísticas: Lo que más vendés</h2>
+    <div id="ranking-categorias"></div>
+  </div>
+
+  <script>
+    // SISTEMA DE NAVEGACIÓN
+    function openTab(tabId) {
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+      if(tabId === 'busqueda') cargarHistorial();
+      if(tabId === 'turnos') cargarTurnos();
+      if(tabId === 'estadisticas') cargarEstadisticas();
+    }
+
+    // BASE DE DATOS LOCAL AUTOMÁTICA
+    let DB_TRABAJOS = JSON.parse(localStorage.getItem('DB_TRABAJOS')) || [];
+    let DB_TURNOS = JSON.parse(localStorage.getItem('DB_TURNOS')) || [];
+    let itemsPresupuesto = [];
+
+    // GUARDAR TRABAJO
+    function guardarTrabajo() {
+      const registro = {
+        fecha: new Date().toLocaleDateString(),
+        nombre: document.getElementById('nombre').value,
+        telefono: document.getElementById('telefono').value,
+        celular: document.getElementById('celular').value,
+        tipo_vehiculo: document.getElementById('tipo_vehiculo').value,
+        modelo: document.getElementById('modelo').value,
+        anio: document.getElementById('anio').value,
+        categoria: document.getElementById('categoria').value,
+        trabajo_a_realizar: document.getElementById('trabajo_a_realizar').value,
+        trabajo_realizado: document.getElementById('trabajo_realizado').value,
+        es_instalado: document.getElementById('es_instalado').value,
+        importe: parseFloat(document.getElementById('importe').value) || 0,
+        forma_pago: document.getElementById('forma_pago').value
+      };
+
+      DB_TRABAJOS.push(registro);
+      localStorage.setItem('DB_TRABAJOS', JSON.stringify(DB_TRABAJOS));
+      alert('¡Trabajo guardado exitosamente!');
+      document.getElementById('form-trabajo').reset();
+    }
+
+    function togglePrecioInstalado() {
+      const esInstalado = document.getElementById('es_instalado').value;
+      let importeInput = document.getElementById('importe');
+      if (esInstalado === 'si' && importeInput.value) {
+        importeInput.value = (parseFloat(importeInput.value) * 1.25).toFixed(0); // Ajuste automático si se requiere
+      }
+    }
+
+    // BUSCADOR DE HISTORIAL
+    function cargarHistorial() {
+      buscarHistorial();
+    }
+
+    function buscarHistorial() {
+      const q = document.getElementById('input-buscar').value.toLowerCase();
+      const body = document.getElementById('body-historial');
+      body.innerHTML = '';
+
+      const filtrados = DB_TRABAJOS.filter(t => 
+        t.nombre.toLowerCase().includes(q) || 
+        t.modelo.toLowerCase().includes(q) || 
+        t.celular.includes(q) ||
+        t.trabajo_realizado.toLowerCase().includes(q)
+      );
+
+      filtrados.forEach(t => {
+        body.innerHTML += `<tr>
+          <td>${t.fecha}</td>
+          <td><b>${t.nombre}</b><br>${t.celular}</td>
+          <td>${t.tipo_vehiculo} ${t.modelo} (${t.anio})</td>
+          <td>${t.categoria}</td>
+          <td><b>Realizado:</b> ${t.trabajo_realizado}<br><small><b>Pedido:</b> ${t.trabajo_a_realizar}</small></td>
+          <td>$${t.importe} (${t.es_instalado === 'si' ? 'Instalado' : 'Solo Producto'})</td>
+          <td>${t.forma_pago}</td>
+        </tr>`;
+      });
+    }
+
+    // AGENDAR TURNOS Y ALERTAS DEL DÍA
+    function guardarTurno() {
+      const turno = {
+        fecha: document.getElementById('turno_fecha').value,
+        cliente: document.getElementById('turno_cliente').value,
+        vehiculo: document.getElementById('turno_vehiculo').value,
+        detalle: document.getElementById('turno_detalle').value
+      };
+
+      DB_TURNOS.push(turno);
+      localStorage.setItem('DB_TURNOS', JSON.stringify(DB_TURNOS));
+      alert('¡Turno agendado!');
+      cargarTurnos();
+    }
+
+    function cargarTurnos() {
+      const body = document.getElementById('body-turnos');
+      body.innerHTML = '';
+      const hoy = new Date().toISOString().split('T')[0];
+      let turnosHoyCount = 0;
+
+      DB_TURNOS.forEach(t => {
+        if(t.fecha === hoy) turnosHoyCount++;
+        body.innerHTML += `<tr>
+          <td>${t.fecha}</td>
+          <td>${t.cliente}</td>
+          <td>${t.vehiculo}</td>
+          <td>${t.detalle}</td>
+        </tr>`;
+      });
+
+      const alerta = document.getElementById('alerta-hoy');
+      if(turnosHoyCount > 0) {
+        alerta.innerHTML = `⚠️ RECORDATORIO: Tenés ${turnosHoyCount} turno(s) programados para el día de hoy.`;
+      } else {
+        alerta.innerHTML = `✅ No tenés turnos agendados para hoy.`;
+      }
+    }
+
+    // PRESUPUESTADOR X-28 CON IVA
+    function agregarItemPresupuesto() {
+      const val = document.getElementById('item_x28').value.split('|');
+      itemsPresupuesto.push({ desc: val[0], precio: parseFloat(val[1]) });
+      calcularTotalPresupuesto();
+    }
+
+    function calcularTotalPresupuesto() {
+      const body = document.getElementById('body-presupuesto');
+      body.innerHTML = '';
+      let subtotal = 0;
+
+      itemsPresupuesto.forEach((item, index) => {
+        subtotal += item.precio;
+        body.innerHTML += `<tr>
+          <td>${item.desc}</td>
+          <td>$${item.precio.toLocaleString()}</td>
+          <td><button onclick="eliminarItem(${index})">❌</button></td>
+        </tr>`;
+      });
+
+      const iva = parseFloat(document.getElementById('tipo_iva').value);
+      const total = subtotal + (subtotal * (iva / 100));
+
+      document.getElementById('total-presupuesto').innerHTML = `
+        Subtotal: $${subtotal.toLocaleString()} <br>
+        IVA (${iva}%): $${(subtotal * (iva / 100)).toLocaleString()} <br>
+        <strong>TOTAL FINAL: $${total.toLocaleString()}</strong>
+      `;
+    }
+
+    function eliminarItem(index) {
+      itemsPresupuesto.splice(index, 1);
+      calcularTotalPresupuesto();
+    }
+
+    // ESTADÍSTICAS MÁS VENDIDOS
+    function cargarEstadisticas() {
+      const conteo = {};
+      DB_TRABAJOS.forEach(t => {
+        conteo[t.categoria] = (conteo[t.categoria] || 0) + 1;
+      });
+
+      const container = document.getElementById('ranking-categorias');
+      container.innerHTML = '';
+
+      Object.entries(conteo).sort((a,b) => b[1] - a[1]).forEach(([cat, cantidad]) => {
+        container.innerHTML += `<div class="card" style="margin-bottom:10px;">
+          ${cat}: <b>${cantidad} trabajos realizados</b>
+        </div>`;
+      });
+    }
+
+    // Inicializar turnos al cargar
+    cargarTurnos();
+  </script>
+</body>
+</html>
